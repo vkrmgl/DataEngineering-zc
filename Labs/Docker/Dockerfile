@@ -1,11 +1,14 @@
 FROM python:3.13.11-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/
 
 WORKDIR /code
 
-RUN pip install uv && \
-	uv init && \
-	uv add pandas pyarrow
+ENV PATH="/code/.venv/bin:$PATH"
 
-COPY pipeline/pipeline.py .
+COPY "pyproject.toml" "uv.lock" "../../.python-version" ./
 
-ENTRYPOINT ["uv", "run", "pipeline.py"]
+RUN uv sync --locked
+
+COPY pipeline/pipeline.py pipeline.py
+
+ENTRYPOINT ["python","pipeline.py"]

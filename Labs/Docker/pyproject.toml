@@ -1,5 +1,5 @@
 [project]
-name = "dataengineering-zc"
+name = "dezc-docker"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
