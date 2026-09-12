@@ -61,3 +61,75 @@ ENV PATH="/app/.venv/bin:$PATH"
 ```
 
 This prepends the path to your virtual environment's binary folder onto your environment's PATH so that any time you run an executable, the shell searches through the virtual environment first.
+
+
+## PostgreSQL
+
+You can run a simple Postgres container with the following command:
+
+```
+docker run -it --rm -e POSTGRES_USER="root" -e POSTGRES_PASSWORD="root" -e POSTGRES_DB="ny_taxi" -v ny_taxi_postgres_data:/var/lib/postgresql -p 5432:5432 postgres:18
+```
+
+- `-e` denotes an environment variable. Each db has a user/pass along with a name
+- `-v` is the volume. Here, we use the named Docker volume `ny_taxi_postgres_data` which is on the host host(will be created if doesn't already exist), and mount it onto the container
+s `/var/lib/postgresql` location. Any changes made in the container now persist in the host machine's ny_taxi_postgres_data.
+- `-p` is the port
+- `postgres:18` is the docker image
+
+You can interact with the database from your local machine using
+
+```
+pgcli -h localhost -p 5432 -u root -d ny_taxi
+```
+
+This opens up an interactive CLI that connects to the host localhost at port 5432 using the root user and ny_taxi database
+
+
+To connect to your DB in python, you can use the `sqlalchemy` package. You have to create a SQL engine, which you can do by running:
+```
+engine = create_engine('postgreqsl+psycopg://root:root@localhost:5432/ny_taxi')
+```
+- `postgresql+psycopg`: SQL dialect + Adapter
+- `root:root`: Your user/pass
+- `localhost:5432`: Host + port
+- `ny_taxi`: DB name
+
+
+## Ingesting Data
+
+You can create an empty table using the headers of a python dataframe by doing the following:
+```
+df.head(0).to_sql(name='yellow_taxi_data', con=engine, if_exists='replace')
+```
+
+Here you supply your engine that you defined earlier.
+
+
+Data can be read in many ways, pd.read_parquet is easy and retains datatypes and schema definitions, whereas pd.read_csv reads csvs and requires some more configuration
+
+For really large datasets, you can't just read the entire thing, so you have to break it into smaller chunks.
+
+```
+df_iter = pd.read_csv(
+    url,
+    dtype=dtype,
+    parse_dates=parse_dates,
+    iterator=True,
+    chunksize=100000,
+    nrows = 545000
+)
+```
+
+`iterator=True` allows you to iterate through the chunks and `chunksize` lets you set the max size of each chunk
+
+
+You can insert into the table by:
+```
+df.to_sql(name='yellow_taxi_data', con=engine, if_exists='append')
+```
+
+Since we chunked this data though, you can use a for loop to iterate through the chunks and insert them one by one:
+```
+df_chunk.to_sql(name='yellow_taxi_data', con=engine, if_exists='append')
+```
