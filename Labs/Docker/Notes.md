@@ -136,3 +136,43 @@ for df_chunk in tqdm(df_iter):
 ```
 
 *tqdm is a package that will let you see a progress bar as the chunks get loaded*
+
+
+## Containerizing + Networking
+
+If you want to connect two docker images, you can create one common network by running
+
+```
+docker network create [network-name]
+```
+
+You can then reference it in docker runs with the `--network=[network-name]` tag
+
+In the lab, we created a postgres image that we named by passing it a `--name pgdatabase` tag. This now becomes the `host` that we connect to with our ingestion script.
+
+```
+# Run PostgreSQL on the network
+docker run -it \
+  -e POSTGRES_USER="root" \
+  -e POSTGRES_PASSWORD="root" \
+  -e POSTGRES_DB="ny_taxi" \
+  -v ny_taxi_postgres_data:/var/lib/postgresql \
+  -p 5432:5432 \
+  --network=pg-network \
+  --name pgdatabase \
+  postgres:18
+
+# In another terminal, run pgAdmin on the same network
+docker run -it \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+  -e PGADMIN_DEFAULT_PASSWORD="root" \
+  -v pgadmin_data:/var/lib/pgadmin \
+  -p 8085:80 \
+  --network=pg-network \
+  --name pgadmin \
+  dpage/pgadmin4
+```
+
+The container names pgdatabase and pgadmin allow the containers to communicate with each other
+
+
