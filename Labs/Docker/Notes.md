@@ -131,5 +131,8 @@ df.to_sql(name='yellow_taxi_data', con=engine, if_exists='append')
 
 Since we chunked this data though, you can use a for loop to iterate through the chunks and insert them one by one:
 ```
-df_chunk.to_sql(name='yellow_taxi_data', con=engine, if_exists='append')
+for df_chunk in tqdm(df_iter):
+    df_chunk.to_sql(name='yellow_taxi_data', con=engine, if_exists='append')
 ```
+
+*tqdm is a package that will let you see a progress bar as the chunks get loaded*
