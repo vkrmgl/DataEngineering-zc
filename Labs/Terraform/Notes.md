@@ -70,3 +70,22 @@ This builds everything in your main.tf file and tracks it in a state file called
 To tear it down, you can run `terraform destroy`
 
 This collapses all of the services in your provider that were mentioned in the .tf file and it also empties the tfstate file's metadata
+
+---
+
+In the second part of the lab, we created a BigQuery dataset
+
+We also created variables using a file called `variables.tf`
+
+This file contains variables that you can reference in your .tf files. The most simple way to define a variables is as follows:
+
+```
+variable "#variable-name" {
+  description = "#description"
+  default     = "#default values of this variable"
+}
+```
+
+You can then reference this in your .tf file as `var.#variable-name`
+
+*One Caviat: When referencing file paths in your main.tf file, you can wrap the path or the variable containing the path with a `file(#path)`*

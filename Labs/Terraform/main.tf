@@ -7,14 +7,15 @@ terraform {
   }
 }
 
-provider "google" { 
-  project = "terraform-docker-508716"
-  region = "us-east1"
+provider "google" {
+  credentials = file(var.credentials)
+  project     = var.project
+  region      = var.region
 }
 
 resource "google_storage_bucket" "test-bucket" {
-  name          = "terraform-docker-508716-bucket"
-  location      = "US"
+  name          = var.gcs_bucket_name
+  location      = var.location
   force_destroy = true
 
   lifecycle_rule {
@@ -34,4 +35,9 @@ resource "google_storage_bucket" "test-bucket" {
       type = "AbortIncompleteMultipartUpload"
     }
   }
+}
+
+resource "google_bigquery_dataset" "demo_dataset" {
+  dataset_id = var.bq_dataset_name
+  location   = var.location
 }
